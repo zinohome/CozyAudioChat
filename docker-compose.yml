@@ -1,0 +1,45 @@
+# 1panel 编排显示名称
+name: cozyaudiochat
+
+services:
+  server:
+    image: ${HARBOR_REGISTRY:-harbor.naivehero.top:8443/video}/cozyaudiochat-server:${IMAGE_TAG:-latest}
+    container_name: cozyaudiochat-server
+    restart: unless-stopped
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "11235"
+      # 单卡共享部署：S2S 与 TTS 都用 GPU 0（需 >=24GB 显存）。
+      # 双卡更佳：将 TTS_GPU 设为 1，并放开下方 device_ids 注释。
+      TTS_GPU: "${TTS_GPU:-0}"
+      DOWNLOAD_SOURCE: "${DOWNLOAD_SOURCE:-modelscope}"
+      S2S_MODEL_NAME: "${S2S_MODEL_NAME:-Fun-Audio-Chat-8B}"
+    volumes:
+      # 模型权重持久化（首次启动自动下载，约 17GB+，请预留磁盘）
+      - /data/RTVideo/models:/app/Fun-Audio-Chat/pretrained_models
+      # 录入音频留存
+      - /data/RTVideo/output:/app/Fun-Audio-Chat/output
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all          # 双卡部署改为: device_ids: ["0", "1"]
+              capabilities: [gpu]
+    networks:
+      - 1panel-network
+
+  client:
+    image: ${HARBOR_REGISTRY:-harbor.naivehero.top:8443/video}/cozyaudiochat-client:${IMAGE_TAG:-latest}
+    container_name: cozyaudiochat-client
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - "${CLIENT_PORT:-8080}:80"
+    networks:
+      - 1panel-network
+
+networks:
+  1panel-network:
+    external: true
