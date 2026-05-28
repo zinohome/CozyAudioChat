@@ -30,6 +30,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # server 镜像很大（CUDA + torch + tensorrt），先清理 runner 磁盘避免构建中途空间耗尽
+      - name: Free disk space
+        if: matrix.component == 'server'
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: true
+
       - name: Compute image tag
         id: meta
         env:
