@@ -1,0 +1,27 @@
+# 上游项目（只读参考，不纳入版本控制）
+projects/Fun-Audio-Chat/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# 环境与密钥
+.env
+*.local
+
+# 编辑器与系统文件
+.idea/
+.vscode/
+.DS_Store
+
+# 模型与数据缓存
+*.log
+*.ckpt
+*.pt
+*.bin
+models/
+cache/
